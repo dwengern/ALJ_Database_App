@@ -4,11 +4,10 @@
     import {NullUser} from "$lib/user-types"
     import { browser } from '$app/environment';
     import {callSignInWithPopup, callSignOut} from "$lib/sign-in-popup"
-    import { collection, query, where, getDocs } from "firebase/firestore";
+    import { collection, query, getDocs } from "firebase/firestore";
 
     let user:User = $state(NullUser)
     let db:any = null
-    let app:any = null
     let data:string[] = $state([])
 
     function doLogin() {
@@ -24,7 +23,9 @@
     }
 
     async function doDumpData() {
-        const q = query(collection(db, "institutions"));
+        // example of getting documents from a collection
+        const q = query(collection(db, "institutions")); 
+        // get all the documents from the institutions collection
         const querySnapshot = await getDocs(q)
         clearData()
         querySnapshot.forEach((doc) => {
@@ -37,10 +38,7 @@
     }
 
     if (browser) {
-        const load = loadApp()
-        app = load.app
-        db = load.db
-        console.log("We have app")
+        ({db} = loadApp())
     }
 
 </script>
