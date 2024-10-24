@@ -3,19 +3,34 @@
     import type {User} from "$lib/user-types"
     import {NullUser} from "$lib/user-types"
     import { browser } from '$app/environment';
+    import {callSignInWithPopup} from "$lib/sign-in-popup"
+    import { collection, query, where, getDocs } from "firebase/firestore";
 
     let user:User = $state(NullUser)
+    let db:any = null
+    let app:any = null
+    let analytics:any = null
 
     function doLogin() {
-        console.log("login")
+        callSignInWithPopup()
     }
 
     function doLogout() {
         console.log("logout")
     }
 
+    async function doDumpData() {
+        const q = query(collection(db, "institutions"));
+        const querySnapshot = await getDocs(q)
+        querySnapshot.forEach((doc) => {
+          console.log(doc.id, " => ", doc.data())
+        })
+    }
+
     if (browser) {
-        const {app, analytics} = loadApp()
+        const load = loadApp()
+        app = load.app
+        db = load.db
         console.log("We have app")
     }
 
@@ -34,5 +49,6 @@
     {:else}
         <button onclick={doLogout}>Logout</button>
     {/if}
+    <button onclick={doDumpData}>Dump Data</button>
 
 {/if}
