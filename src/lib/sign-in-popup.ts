@@ -1,8 +1,9 @@
-import { getAuth, signOut, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signOut, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import type {Auth} from "firebase/auth"
+
 import {NullUser, type User} from "$lib/user-types"
 
-export function callSignInWithPopup(callback: (user:User) => void) {
-    const auth = getAuth();
+export function callSignInWithPopup(auth:Auth) {
     const provider = new GoogleAuthProvider();    
     signInWithPopup(auth, provider)
     .then((result) => {
@@ -14,7 +15,6 @@ export function callSignInWithPopup(callback: (user:User) => void) {
         // The signed-in user info.
         const user = result.user;
         console.log("User:", user)
-        callback({name: user.displayName!, email:user.email!, photoURL:user.photoURL!})
       } else {
         console.log("Yikes! It's a null credential.")
       }
@@ -31,14 +31,12 @@ export function callSignInWithPopup(callback: (user:User) => void) {
     });
 }
 
-export function callSignOut(callback: (user:User) => void) {
-  const auth = getAuth();
+export function callSignOut(auth: Auth) {
   signOut(auth).then(() => {
-    callback(NullUser)
+    console.log("Signed out")
   }).catch((error) => {
     // An error happened.
     console.log("Ack, no sign out?" + error.message)
-  });
-  
+  })
 }
 

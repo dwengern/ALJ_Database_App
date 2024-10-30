@@ -5,13 +5,17 @@
     import { browser } from '$app/environment';
     import {callSignInWithPopup, callSignOut} from "$lib/sign-in-popup"
     import { collection, query, getDocs } from "firebase/firestore";
+    import type {Auth} from "firebase/auth"
+    import {getAuth, onAuthStateChanged} from "firebase/auth"
+
 
     let user:User = $state(NullUser)
     let db:any = null
     let data:string[] = $state([])
+    let auth: Auth
 
     function doLogin() {
-        callSignInWithPopup(updateUser)
+        callSignInWithPopup(auth)
     }
 
     function updateUser({name, email, photoURL}:User):void{
@@ -19,7 +23,7 @@
     }
 
     function doLogout() {
-        callSignOut(updateUser)
+        callSignOut(auth)
     }
 
     async function doDumpData() {
@@ -37,9 +41,19 @@
         data = []
     }
 
-    if (browser) {
+    $effect(() => {
         ({db} = loadApp())
-    }
+        auth = getAuth()
+        onAuthStateChanged(auth, (user) => {
+            console.log("User auth has changed...")
+            if (user) {
+                updateUser({name: user.displayName!, email:user.email!, photoURL:user.photoURL!})
+            } else {
+                updateUser(NullUser)
+            }
+        })
+    })
+
 
 </script>
 
