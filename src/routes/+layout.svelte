@@ -55,6 +55,10 @@
 		Search
 	</a>
 
+    <a href="/editmyprofile">
+		Edit My Profile
+	</a>
+
     {#if browser}
         {#if sharedState.user.name.length == 0}
             <a href="#top" onclick={doLogin}>Sign In</a>
