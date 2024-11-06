@@ -55,8 +55,12 @@
 		Search
 	</a>
 
+    <a href="/uid/profile">
+		View Profile
+	</a>
+
     <a href="/editmyprofile">
-		Edit My Profile
+		Edit Profile
 	</a>
 
     {#if browser}

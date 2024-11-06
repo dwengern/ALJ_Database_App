@@ -31,7 +31,7 @@
 <p>Name:{sharedState.user.name}</p>
 <p>Email:{sharedState.user.email}</p>
 <img src={sharedState.user.photoURL} alt="User profile image" />
-<p>Community Name</p>
+
 
 
 <!--Change this to something for a profile that we would actually change unlike name, name is recieved from google sign in,
