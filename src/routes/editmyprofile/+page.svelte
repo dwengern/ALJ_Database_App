@@ -34,7 +34,8 @@
 <p>Community Name</p>
 
 
-<!--CHange this to something for a profile that we would actually change-->
+<!--Change this to something for a profile that we would actually change unlike name, name is recieved from google sign in,
+so it is constantly re updated-->
 <h2>Change Name</h2>
 <form on:submit={handleNameChange}>
   <label for="username">New name:</label>
