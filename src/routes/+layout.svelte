@@ -36,7 +36,7 @@
                 onAuthStateChanged(sharedState.auth, (user) => {
                     console.log('User auth has changed...');
                     if (user) {
-                        updateUser({ name: user.displayName!, email: user.email!, photoURL: user.photoURL! });
+                        updateUser({ name: user.displayName!, email: user.email!, photoURL: user.photoURL!,uid: user.uid!});
                     } else {
                         updateUser(NullUser);
                     }

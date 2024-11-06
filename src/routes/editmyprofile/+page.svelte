@@ -1,4 +1,4 @@
-<!-- NOTES: name still resets back to old upon refresh of page, but not when clicking through other page tabs -->
+
 <h1>Edit my Profile</h1>
 
 <script lang="ts">
@@ -30,8 +30,12 @@
 <h2>Profile Details</h2>
 <p>Name:{sharedState.user.name}</p>
 <p>Email:{sharedState.user.email}</p>
+<img src={sharedState.user.photoURL} alt="User profile image" />
+<p>Community Name</p>
 
-<h2>Change name</h2>
+
+<!--CHange this to something for a profile that we would actually change-->
+<h2>Change Name</h2>
 <form on:submit={handleNameChange}>
   <label for="username">New name:</label>
   <input type="text" id="username" name="username" required>
