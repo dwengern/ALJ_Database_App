@@ -1,29 +1,14 @@
 
 <script lang="ts">
-	import { callSignInWithPopup, callSignOut } from '$lib/sign-in-popup';
-	import { getAuth, onAuthStateChanged } from 'firebase/auth';
 	import { browser } from '$app/environment';
 	import 	{ sharedState, updateUser } from '$lib/sharedState.svelte';
-    import { NullUser } from '$lib/user-types';
+	import { getAuth, onAuthStateChanged } from 'firebase/auth';
     import { loadApp } from '$lib/firebase-client';
+    import { NullUser } from '$lib/user-types';
 
-	let { children } = $props();
-
-	function doLogin() {
-        if (!sharedState!.auth) {
-            console.log('No auth object');
-            return;
-        }
-		callSignInWithPopup(sharedState!.auth);
-	}
-
-	function doLogout() {
-        if (!sharedState!.auth) {
-            console.log('No auth object');
-            return;
-        }
-		callSignOut(sharedState.auth);
-	}
+    import Navbar from '$lib/Navbar.svelte';
+    import Footer from '$lib/Footer.svelte';
+    let { children } = $props();
 
 	if (browser) {
         console.log("Layout running in browser")
@@ -46,24 +31,6 @@
     }
 </script>
 
-<nav>
-	<a href="/">
-		Home
-	</a>
-
-	<a href="/search">
-		Search
-	</a>
-
-    {#if browser}
-        {#if sharedState.user.name.length == 0}
-            <a href="#top" onclick={doLogin}>Sign In</a>
-        {:else}
-            (signed in as {sharedState.user.name})<a href="#top" onclick={doLogout}>Sign Out</a>
-        {/if}
-	{:else}
-		No browser
-    {/if}
-</nav>
-
+<Navbar />
 {@render children()}
+<Footer />

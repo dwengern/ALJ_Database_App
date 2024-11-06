@@ -1,1 +1,3 @@
 <h1>Search</h1>
+
+This is the search page....
