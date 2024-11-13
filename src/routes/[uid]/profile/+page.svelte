@@ -4,10 +4,14 @@ import 	{ sharedState, updateUser } from '$lib/sharedState.svelte';
 import { NullUser } from '$lib/user-types';
 
 </script>
-<h1>{sharedState.user.name} User Profile</h1>
 
-<h2>Profile Details</h2>
-<p>Name:{sharedState.user.name}</p>
+{#if sharedState.user.name.length > 0}
+	<p>Welcome, {sharedState.user.name}!</p>
+    <h2>Profile Details</h2>
 <p>Email:{sharedState.user.email}</p>
+<p>Bio:{sharedState.user.bio}</p>
 <img src={sharedState.user.photoURL} alt="User profile image" />
+{:else}
+	<p>No user</p>
+{/if}
 
