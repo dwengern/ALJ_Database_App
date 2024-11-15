@@ -1,6 +1,4 @@
 
-
-
 <script lang="ts">
 	import { callSignInWithPopup, callSignOut } from '$lib/sign-in-popup';
 	import { getAuth, onAuthStateChanged } from 'firebase/auth';
@@ -10,6 +8,7 @@
     import { loadApp } from '$lib/firebase-client';
     import { getFirestore, doc, setDoc } from "firebase/firestore";
    
+	
 
      	// Function to handle name change
 	async function handleNameChange(event: Event) {
@@ -22,13 +21,17 @@
 			sharedState.user.bio = bio;
 			updateUser(sharedState.user);
 
-			// Save bio to Firestore
+		
+
+			// Save the bio to Firestore
 			try {
-				const userDocRef = doc(db, 'users', sharedState.user.uid);
-				await setDoc(userDocRef, { bio }, { merge: true });
-				console.log('Bio saved successfully to Firestore.');
+				await setDoc(doc(db, "users", sharedState.user.uid), {
+					Bio: bio,
+					// You can include other fields here if you want to update them as well
+				}, { merge: true });
+				console.log("Bio updated in Firestore successfully");
 			} catch (error) {
-				console.error('Error saving bio to Firestore:', error);
+				console.error("Error updating bio in Firestore:", error);
 			}
 		}
 	}
