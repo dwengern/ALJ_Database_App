@@ -1,14 +1,12 @@
 
 <script lang="ts">
-	import { callSignInWithPopup, callSignOut } from '$lib/sign-in-popup';
-	import { getAuth, onAuthStateChanged } from 'firebase/auth';
 	import { browser } from '$app/environment';
 	import 	{ sharedState, updateUser } from '$lib/sharedState.svelte';
-    import { NullUser } from '$lib/user-types';
-    import { loadApp } from '$lib/firebase-client';
-    import { getFirestore, doc, setDoc } from "firebase/firestore";
+    import { doc, setDoc } from "firebase/firestore";
    
-	
+	if (browser) {
+		console.log("Shared state in editmyprofile:", sharedState);
+	}
 
      	// Function to handle name change
 	async function handleNameChange(event: Event) {
@@ -19,13 +17,13 @@
 		// Update sharedState's bio
 		if (bio && sharedState.user.uid) {
 			sharedState.user.bio = bio;
-			updateUser(sharedState.user);
-
-		
-
 			// Save the bio to Firestore
+			if (!sharedState.db) {
+				console.error("Firestore database not initialized");
+				return;
+			}
 			try {
-				await setDoc(doc(db, "users", sharedState.user.uid), {
+				await setDoc(doc(sharedState.db, "users", sharedState.user.uid), {
 					Bio: bio,
 					// You can include other fields here if you want to update them as well
 				}, { merge: true });
@@ -46,7 +44,7 @@
 <h2>Profile Details</h2>
 <p>Name:{sharedState.user.name}</p>
 <p>Email:{sharedState.user.email}</p>
-<img src={sharedState.user.photoURL} alt="User profile image" />
+<img src={sharedState.user.photoURL} alt="User profile" />
 <p>uid:{sharedState.user.uid}</p>
 <p>bio:{sharedState.user.bio}</p>
 

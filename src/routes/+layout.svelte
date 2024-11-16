@@ -6,6 +6,7 @@
 	import 	{ sharedState, updateUser } from '$lib/sharedState.svelte';
     import { NullUser } from '$lib/user-types';
     import { loadApp } from '$lib/firebase-client';
+    import { doc, getDoc } from "firebase/firestore";
 
 	let { children } = $props();
 
@@ -36,7 +37,20 @@
                 onAuthStateChanged(sharedState.auth, (user) => {
                     console.log('User auth has changed...');
                     if (user) {
-                        updateUser({ name: user.displayName!, email: user.email!, photoURL: user.photoURL!,uid: user.uid!});
+                        let g_user = { name: user.displayName!, email: user.email!, photoURL: user.photoURL!,uid: user.uid!} as any;
+                        const docRef = doc(db, "users", g_user.uid)
+                        
+                        const docSnap = getDoc(docRef).then((doc) => {
+                            if (doc.exists()) {
+                                console.log("Document data:", doc.data());
+                                g_user.bio = doc.data().Bio;
+                                console.log('User is logged in:', g_user);                        
+                                updateUser({ name: user.displayName!, email: user.email!, photoURL: user.photoURL!,uid: user.uid!, bio: g_user.bio});   
+                            } else {
+                                console.log("No such document!");
+                            }}).catch((error) => {
+                                console.log("Error getting document:", error);
+                            });
                     } else {
                         updateUser(NullUser);
                     }
