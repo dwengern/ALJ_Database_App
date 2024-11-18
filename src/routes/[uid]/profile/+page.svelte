@@ -33,7 +33,7 @@
   <hr>
   <img src={sharedState.user.photoURL} alt="User profile" />
   <p><strong>{sharedState.user.name}</strong></p>
-  <p><strong>Email:</strong> {sharedState.user.email}</p>
+ <!--<p><strong>Email:</strong> {sharedState.user.email}</p>   (May not want this to be shown publily, add option?)--> 
   <p><strong>Bio:</strong> {sharedState.user.bio}</p>
 </div>
 {:else}
