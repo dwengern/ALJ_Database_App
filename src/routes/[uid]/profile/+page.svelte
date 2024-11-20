@@ -35,6 +35,7 @@
   <p><strong>{sharedState.user.name}</strong></p>
  <!--<p><strong>Email:</strong> {sharedState.user.email}</p>   (May not want this to be shown publily, add option?)--> 
   <p><strong>Bio:</strong> {sharedState.user.bio}</p>
+  <p><strong>Institution:</strong> </p>
 </div>
 {:else}
 <div class="center-container">

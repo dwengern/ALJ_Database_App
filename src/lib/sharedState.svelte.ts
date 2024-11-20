@@ -14,6 +14,6 @@ type SharedState = {
 const initSharedState:SharedState = { db: null, user: NullUser, auth: null };
 export const sharedState = $state(initSharedState);
 
-export function updateUser({ name, email, photoURL, uid, bio }: User): void {
-    sharedState.user = { name, email, photoURL, uid, bio };
+export function updateUser({ name, email, photoURL, uid, bio, interest }: User): void {
+    sharedState.user = { name, email, photoURL, uid, bio, interest };
 }

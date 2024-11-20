@@ -31,6 +31,31 @@
 			}
 		}
 	}
+
+  // Function to handle interest change
+	async function handleInterestChange(event: Event) {
+		event.preventDefault();
+		const form = event.target as HTMLFormElement;
+		const interest = (form.querySelector('#interest') as HTMLInputElement).value;
+
+		// Update sharedState's interest
+		if (interest && sharedState.user.uid) {
+			sharedState.user.interest = interest;
+			// Save the interest to Firestore
+			if (!sharedState.db) {
+				console.error("Firestore database not initialized");
+				return;
+			}
+			try {
+				await setDoc(doc(sharedState.db, "users", sharedState.user.uid), {
+					interest: interest,
+				}, { merge: true });
+				console.log("interest updated in Firestore successfully");
+			} catch (error) {
+				console.error("Error updating bio in Firestore:", error);
+			}
+		}
+	}
 </script>
 
 <style>
@@ -98,6 +123,18 @@
       name="bio"
       required
       value={sharedState.user.bio || ''}
+    >
+    <button type="submit">Submit</button>
+  </form>
+  <h3>Research Interests</h3>
+  <form on:submit={handleInterestChange}>
+    <label for="interest">add interests:</label>
+    <input
+      type="text"
+      id="interest"
+      name="interest"
+      required
+      value={sharedState.user.interest || ''}
     >
     <button type="submit">Submit</button>
   </form>
