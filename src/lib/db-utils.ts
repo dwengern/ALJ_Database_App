@@ -1,4 +1,7 @@
 import { collection, query, where, getDocs } from "firebase/firestore";
+import { loadApp } from '$lib/firebase-client';
+
+const { db } = loadApp();
 
 const q = query(collection(db, "cities"), where("capital", "==", true));
 

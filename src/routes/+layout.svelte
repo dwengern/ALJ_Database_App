@@ -6,6 +6,8 @@
 	import { NullUser } from '$lib/user-types'
 	import { loadApp } from '$lib/firebase-client'
 	import { doc, getDoc } from 'firebase/firestore'
+	import Navbar from '$lib/Navbar.svelte';
+    import Footer from '$lib/Footer.svelte';
 
 	let { children } = $props()
 
@@ -77,24 +79,6 @@
 	}
 </script>
 
-<nav>
-	<a href="/"> Home </a>
-
-	<a href="/search"> Search </a>
-
-	<a href="/uid/profile"> View Profile </a>
-
-	<a href="/editmyprofile"> Edit Profile </a>
-
-	{#if browser}
-		{#if sharedState.user.name.length == 0}
-			<a href="#top" onclick={doLogin}>Sign In</a>
-		{:else}
-			(signed in as {sharedState.user.name})<a href="#top" onclick={doLogout}>Sign Out</a>
-		{/if}
-	{:else}
-		No browser
-	{/if}
-</nav>
-
+<Navbar />
 {@render children()}
+<Footer />
