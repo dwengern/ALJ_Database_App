@@ -126,9 +126,9 @@
     >
     <button type="submit">Submit</button>
   </form>
-  <h3>Research Interests</h3>
+  <h3>Area Of Expertise</h3>
   <form on:submit={handleInterestChange}>
-    <label for="interest">add interests:</label>
+    <label for="interest">Area of expertise:</label>
     <input
       type="text"
       id="interest"

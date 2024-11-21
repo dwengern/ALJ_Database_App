@@ -55,7 +55,8 @@
 										email: user.email!,
 										photoURL: user.photoURL!,
 										uid: user.uid!,
-										bio: g_user.bio
+										bio: g_user.bio,
+										interest: g_user.interest
 									})
 								} else {
 									console.log('No such document!')
