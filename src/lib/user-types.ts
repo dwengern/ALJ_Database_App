@@ -4,7 +4,8 @@ export type User = {
     photoURL: string,
     uid: string,
     bio: string,
-    interest: string
+    interest: string,
+    institution: string
 }
 
 export const NullUser:User = {
@@ -13,5 +14,6 @@ export const NullUser:User = {
     photoURL:'',
     uid:'',
     bio:'',
-    interest:''
+    interest:'',
+    institution: ''
 }

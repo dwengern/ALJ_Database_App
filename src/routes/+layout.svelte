@@ -49,6 +49,8 @@
 								if (doc.exists()) {
 									console.log('Document data:', doc.data())
 									g_user.bio = doc.data().Bio
+									g_user.interest = doc.data().interest
+									g_user.institution = doc.data().institution
 									console.log('User is logged in:', g_user)
 									updateUser({
 										name: user.displayName!,
@@ -56,7 +58,8 @@
 										photoURL: user.photoURL!,
 										uid: user.uid!,
 										bio: g_user.bio,
-										interest: g_user.interest
+										interest: g_user.interest,
+										institution: g_user.institution
 									})
 								} else {
 									console.log('No such document!')

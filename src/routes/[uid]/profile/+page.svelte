@@ -36,6 +36,7 @@
  <!--<p><strong>Email:</strong> {sharedState.user.email}</p>   (May not want this to be shown publily, add option?)--> 
   <p><strong>Bio:</strong> {sharedState.user.bio}</p>
   <p><strong>Area of Expertise:</strong> {sharedState.user.interest}</p>
+  <p><strong>Institution/Affiliation:</strong> {sharedState.user.institution}</p>
 </div>
 {:else}
 <div class="center-container">

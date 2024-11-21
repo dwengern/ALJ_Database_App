@@ -56,6 +56,31 @@
 			}
 		}
 	}
+
+   // Function to handle institution change
+	async function handleInstitutionChange(event: Event) {
+		event.preventDefault();
+		const form = event.target as HTMLFormElement;
+		const institution = (form.querySelector('#institution') as HTMLInputElement).value;
+
+		// Update sharedState's instituion
+		if (institution && sharedState.user.uid) {
+			sharedState.user.institution = institution;
+			// Save the instituion to Firestore
+			if (!sharedState.db) {
+				console.error("Firestore database not initialized");
+				return;
+			}
+			try {
+				await setDoc(doc(sharedState.db, "users", sharedState.user.uid), {
+					institution: institution,
+				}, { merge: true });
+				console.log("institution updated in Firestore successfully");
+			} catch (error) {
+				console.error("Error updating bio in Firestore:", error);
+			}
+		}
+	}
 </script>
 
 <style>
@@ -113,6 +138,9 @@
   <p><strong>Email:</strong> {sharedState.user.email}</p>
   <img src={sharedState.user.photoURL} alt="User profile" />
   <p><strong>Bio:</strong> {sharedState.user.bio}</p>
+  <p><strong>Area of Expertise:</strong> {sharedState.user.interest}</p>
+  <p><strong>Institution/Affiliation:</strong> {sharedState.user.institution}</p>
+
   <hr>
   <h3>Create/Change Bio</h3>
   <form on:submit={handleNameChange}>
@@ -135,6 +163,19 @@
       name="interest"
       required
       value={sharedState.user.interest || ''}
+    >
+    <button type="submit">Submit</button>
+  </form>
+
+  <h3>Institution</h3>
+  <form on:submit={handleInstitutionChange}>
+    <label for="insititution">Institution/Affiliation:</label>
+    <input
+      type="text"
+      id="institution"
+      name="institution"
+      required
+      value={sharedState.user.institution || ''}
     >
     <button type="submit">Submit</button>
   </form>
