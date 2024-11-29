@@ -32,7 +32,11 @@
     {
       title: "Conversations",
       href: "/conversations"
-    }
+    }, 
+	{
+	  title: "Communitiies", 
+	  href: "/communities"
+	}
   ];
 
   let url = $derived($page.url.href)
