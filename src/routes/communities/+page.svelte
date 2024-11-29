@@ -1,20 +1,34 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { writable } from 'svelte/store';
     import { doc, addDoc, getDoc, updateDoc, arrayUnion, collection } from 'firebase/firestore';
     import { sharedState } from '$lib/sharedState.svelte';
+    import type { Community } from '$lib/community-type';
 
-    let { db, auth } = sharedState; 
+    let { db, auth } = sharedState
+    let isSignedIn: boolean
+    let communities = writable<Community[] | null>([])
 
-    /*let isSignedIn: boolean
+    let continent: string
+    let country: string
+    let tribe: string
+    let name: string
+    let users: string[] = []
+    let ancestors: string[] = []  
+    let content: string
 
     $: isSignedIn = signedIn()
 
     function signedIn(): boolean { 
         return sharedState.user.uid !== ''
-    }*/
+    }
 
-    async function createCommunity() { 
-        
+    function createCommunity() { 
+        if (isSignedIn) { 
+            window.prompt('got it!')
+        } else { 
+            window.prompt('You need to be signed in to do this.')
+        }
     }
 
     //This part deals with the dynamic page 
@@ -23,6 +37,25 @@
     const toggleVisibility = () => { 
         hidden = !hidden
     }    
+
+    const addEntry = (content: string) => { 
+        let ancestorEntry = document.getElementById('ancestors') as HTMLDivElement | null 
+        let ancestorInput = document.getElementById('ancestorInput') as HTMLInputElement | null
+        if (ancestorEntry && ancestorInput) { 
+            const newEntry = document.createElement('p')
+            newEntry.innerText = content
+            ancestorEntry.appendChild(newEntry)
+            ancestors.push(content)
+
+            resetInput()
+        } else { 
+            window.prompt('Whoops! that container does not exist.')
+        }
+    }
+
+    const resetInput = () => {
+        content = ''; // Reset the bound variable
+    };
 </script>
 
 <div class="grid">
@@ -35,28 +68,33 @@
         <div class="new-comm-form" style:display={hidden ? 'none' : 'flex'}>
             <label>
                 Name of the Community: 
-                <input type="text" id="community" name="community">
+                <input type="text" bind:value={name}>
             </label>
 
             <label>
                 Continent of Origin: 
-                <input type="text" id="continent" name="continent">
+                <input type="text" bind:value={continent}>
             </label>
 
             <label>
                 Country of Origin: 
-                <input type="text" id="country" name="country">
+                <input type="text" bind:value={country}>
             </label>
 
             <label>
                 Tribe: 
-                <input type="text" id="tribe" name="tribe">
+                <input type="text" bind:value={tribe}>
             </label>
 
             <label>
-                Names of Common Ancestors: 
-                <button>Add New</button>
+                Names of Common Ancestors:
+                <input type="text" id="ancestorInput" bind:value={content}> 
+                <button on:click={() => addEntry(content)}>Add New</button>
             </label>
+
+            <div id="ancestors"></div>
+
+            <button on:click={createCommunity}>submit</button>
         </div>
     </div>
 </div>
