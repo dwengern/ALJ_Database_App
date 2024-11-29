@@ -1,8 +1,8 @@
 export type Community = { 
-    ContinentOfOrigin: '', 
-    CountryOfOrigin: '', 
-    TribalNation: '', 
-    name: '', 
+    ContinentOfOrigin: string, 
+    CountryOfOrigin: string, 
+    TribalNation: string, 
+    name: string, 
     users: string[], 
     commonAncestors: string[]   
 }

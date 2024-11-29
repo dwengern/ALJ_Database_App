@@ -5,18 +5,34 @@
 
     let { db, auth } = sharedState; 
 
+    /*let isSignedIn: boolean
+
+    $: isSignedIn = signedIn()
+
+    function signedIn(): boolean { 
+        return sharedState.user.uid !== ''
+    }*/
+
     async function createCommunity() { 
         
     }
+
+    //This part deals with the dynamic page 
+    let hidden = true; 
+
+    const toggleVisibility = () => { 
+        hidden = !hidden
+    }    
 </script>
 
 <div class="grid">
     <div class="list">
-        <button class="add-comm">Create New Community</button>
+        <button class="add-comm" on:click={toggleVisibility}>Create New Community</button>
     </div>
 
     <div class="content">
-        <div class="new-comm-form">
+        
+        <div class="new-comm-form" style:display={hidden ? 'none' : 'flex'}>
             <label>
                 Name of the Community: 
                 <input type="text" id="community" name="community">
@@ -36,6 +52,7 @@
                 Tribe: 
                 <input type="text" id="tribe" name="tribe">
             </label>
+
             <label>
                 Names of Common Ancestors: 
                 <button>Add New</button>
@@ -74,5 +91,10 @@
 
     .add-comm:active { 
         background-color: pink; 
+    }
+
+    .new-comm-form { 
+        display: none; 
+        flex-direction: column; 
     }
 </style>
