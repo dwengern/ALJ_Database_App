@@ -7,15 +7,15 @@
 
     let { db, auth } = sharedState
     let isSignedIn: boolean
-    let communities = writable<Community[] | null>([])
+    let communities = writable<Community[]>([])
 
-    let continent: string
-    let country: string
-    let tribe: string
-    let name: string
+    let continentOfOrigin: string
+    let countryOfOrigin: string 
+    let tribalNation: string
+    let name: string = ''
     let users: string[] = []
-    let ancestors: string[] = []  
-    let content: string
+    let commonAncestors: string[] = []  
+    let content: string = ''
 
     $: isSignedIn = signedIn()
 
@@ -24,10 +24,36 @@
     }
 
     function createCommunity() { 
-        if (isSignedIn) { 
+        /*if (isSignedIn) { 
             window.prompt('got it!')
         } else { 
             window.prompt('You need to be signed in to do this.')
+        }*/
+
+        if (continentOfOrigin && name) { 
+            users.push(sharedState.user.uid)
+            let comm = {continentOfOrigin, countryOfOrigin, tribalNation, name, users, commonAncestors}
+            communities.update(cur => [...cur, comm])
+            
+
+            const container = document.getElementById('comm-list') as HTMLDivElement | null
+
+            if (container) { 
+                const newBtn = document.createElement('button')
+                newBtn.innerText = `${name}`
+
+                newBtn.style.border = 'none'
+                newBtn.style.width = '100%'
+                newBtn.style.backgroundColor = 'white'
+                newBtn.style.height = '50px'
+
+                container.appendChild(newBtn)
+            }
+
+            resetInput()
+            
+        } else { 
+            window.alert('You at least need to enter the community name and continent.')
         }
     }
 
@@ -42,25 +68,55 @@
         let ancestorEntry = document.getElementById('ancestors') as HTMLDivElement | null 
         let ancestorInput = document.getElementById('ancestorInput') as HTMLInputElement | null
         if (ancestorEntry && ancestorInput) { 
+            const newDiv = document.createElement('div')
+            const del = document.createElement('button')
             const newEntry = document.createElement('p')
-            newEntry.innerText = content
-            ancestorEntry.appendChild(newEntry)
-            ancestors.push(content)
 
-            resetInput()
+            newEntry.innerText = content
+            del.innerText = 'X'
+            newDiv.style.display = 'flex'
+
+
+            del.onclick = () => { 
+                const txt = newEntry.innerText
+                const index = commonAncestors.indexOf(txt)
+
+                if (index >  -1) { 
+                    commonAncestors.splice(index, 1)
+                }
+                
+                ancestorEntry.removeChild(newDiv)
+            }
+            
+            commonAncestors.push(content)
+
+            newDiv.appendChild(newEntry)
+            newDiv.appendChild(del)
+            ancestorEntry.appendChild(newDiv)
+
+            resetContent()
         } else { 
             window.prompt('Whoops! that container does not exist.')
         }
     }
 
     const resetInput = () => {
-        content = ''; // Reset the bound variable
+        content = '';
+        countryOfOrigin = ''; 
+        continentOfOrigin = ''; 
+        tribalNation = '';    
+        name = '';      
+    };
+
+    const resetContent = () => {
+        content = '';
     };
 </script>
 
 <div class="grid">
     <div class="list">
         <button class="add-comm" on:click={toggleVisibility}>Create New Community</button>
+        <div id="comm-list" class="comm-list"></div>
     </div>
 
     <div class="content">
@@ -73,17 +129,17 @@
 
             <label>
                 Continent of Origin: 
-                <input type="text" bind:value={continent}>
+                <input type="text" bind:value={continentOfOrigin}>
             </label>
 
             <label>
                 Country of Origin: 
-                <input type="text" bind:value={country}>
+                <input type="text" bind:value={countryOfOrigin}>
             </label>
 
             <label>
                 Tribe: 
-                <input type="text" bind:value={tribe}>
+                <input type="text" bind:value={tribalNation}>
             </label>
 
             <label>
@@ -135,4 +191,12 @@
         display: none; 
         flex-direction: column; 
     }
+
+    .comm-list {
+        display: flex; 
+        --button-hover-bg: darkblue; 
+    }
+
+    
+
 </style>
