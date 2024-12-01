@@ -1,120 +1,142 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { doc, addDoc, getDoc, updateDoc, arrayUnion, collection } from 'firebase/firestore';
+    import { collection, doc, updateDoc, arrayUnion, onSnapshot, addDoc } from 'firebase/firestore';
     import { sharedState } from '$lib/sharedState.svelte';
 
     let { db, auth } = sharedState;
 
-    let searchChatId = '';
-    let foundChat: { id: any; name?: any; shipName?: any; createdAt?: any; participants?: any } | null = null;
-    let debounceTimer: NodeJS.Timeout | null = null;
+    let conversations: Array<{
+        id: string;
+        name: string;
+        shipName: string;
+        description: string;
+        comments: string[];
+        participants: string[];
+        owner: string;
+    }> = [];
 
-    // Create a new chat using a popup
-    async function createChat() {
-        const newChatName = window.prompt("Enter the name for the new chat:");
-        const newShipName = window.prompt("Enter the ship name for the new chat:");
+    let newComment = '';
+    let newParticipant = '';
+    let currentUserId = '';
+    let showModal = false;
 
-        if (!newChatName?.trim() || !newShipName?.trim()) return;
-
-        try {
-            const chatRef = await addDoc(collection(db!, 'chats'), {
-                name: newChatName,
-                shipName: newShipName,
-                createdAt: new Date(),
-                participants: [],
-            });
-            console.log(`Created new chat with ID: ${chatRef.id}`);
-        } catch (error) {
-            console.error("Error creating chat:", error);
-        }
+    function loadConversations() {
+        const chatsCollection = collection(db!, 'chats');
+        onSnapshot(chatsCollection, snapshot => {
+            conversations = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            })) as typeof conversations;
+        });
     }
 
-    // Add a new participant to an existing chat using popups
-    async function addParticipant() {
-        const chatIdToJoin = window.prompt("Enter the chat ID to add a participant to:");
-        const userIdToAdd = window.prompt("Enter the user ID to add as a participant:");
+    onMount(() => {
+        if (auth?.currentUser) {
+            currentUserId = auth.currentUser.uid;
+        }
+        loadConversations();
+    });
 
-        if (!chatIdToJoin?.trim() || !userIdToAdd?.trim()) return;
+    async function addComment(chatId: string) {
+        if (!newComment.trim()) return;
 
-        const chatRef = doc(db!, 'chats', chatIdToJoin);
+        const chatRef = doc(db!, 'chats', chatId);
 
         try {
             await updateDoc(chatRef, {
-                participants: arrayUnion(userIdToAdd),
+                comments: arrayUnion(newComment),
             });
-            console.log(`Added user ${userIdToAdd} to chat ${chatIdToJoin}`);
+            newComment = ''; 
+        } catch (error) {
+            console.error("Error adding comment:", error);
+        }
+    }
+
+    async function addParticipant(chatId: string) {
+        if (!newParticipant.trim()) return;
+
+        const chat = conversations.find(convo => convo.id === chatId);
+        if (chat?.owner !== currentUserId) {
+            alert('Only the chat owner can add participants.');
+            return;
+        }
+
+        const chatRef = doc(db!, 'chats', chatId);
+
+        try {
+            await updateDoc(chatRef, {
+                participants: arrayUnion(newParticipant),
+            });
+            newParticipant = ''; 
         } catch (error) {
             console.error("Error adding participant:", error);
         }
     }
 
-    // Search for a chat by its ID
-    async function searchChatById() {
-        if (!searchChatId.trim()) {
-            foundChat = null;
-            return;
-        }
-
-        const chatRef = doc(db!, 'chats', searchChatId);
-
+    async function createChat(name: string, shipName: string, description: string) {
         try {
-            const chatDoc = await getDoc(chatRef);
-            if (chatDoc.exists()) {
-                foundChat = { id: chatDoc.id, ...chatDoc.data() };
-            } else {
-                foundChat = null;
-            }
+            await addDoc(collection(db!, 'chats'), {
+                name,
+                shipName,
+                description,
+                owner: currentUserId,
+                participants: [],
+                comments: [],
+            });
         } catch (error) {
-            console.error("Error searching for chat:", error);
+            console.error("Error creating chat:", error);
         }
-    }
-
-    // Watch `searchChatId` for changes and debounce the search
-    $: if (searchChatId) {
-        if (debounceTimer) clearTimeout(debounceTimer);
-
-        debounceTimer = setTimeout(() => {
-            searchChatById();
-        }, 300); // Delay of 300ms
     }
 </script>
 
 <h1 class="page-title">Chat Management</h1>
 
 <div class="container">
-    <div class="card">
-        <h3>Create a New Chat</h3>
-        <button class="action-button" on:click={createChat}>Create Chat</button>
-    </div>
+    <button class="create-chat-button" on:click={() => (showModal = true)}>
+        Create Chat
+    </button>
+</div>
 
-    <div class="card">
-        <h3>Add a Participant to Chat</h3>
-        <button class="action-button" on:click={addParticipant}>Add Participant</button>
-    </div>
+<div class="conversations">
+    {#if conversations.length}
+        {#each conversations as conversation}
+            <div class="conversation-card">
+                <h3>{conversation.name}</h3>
+                <p><strong>Ship:</strong> {conversation.shipName}</p>
+                <p><strong>Description:</strong> {conversation.description}</p>
+                <p><strong>Owner:</strong> {conversation.owner === currentUserId ? 'You' : conversation.owner}</p>
 
-    <div class="card">
-        <h3>Search for a Chat by ID</h3>
-        <div class="search-container">
-            <input
-                type="text"
-                class="search-input"
-                bind:value={searchChatId}
-                placeholder="Enter chat ID to search"
-            />
-        </div>
-    </div>
+                <div class="comments-section">
+                    <h4>Comments:</h4>
+                    <ul>
+                        {#each conversation.comments as comment}
+                            <li>{comment}</li>
+                        {/each}
+                    </ul>
+                    <input
+                        type="text"
+                        bind:value={newComment}
+                        placeholder="Add a comment"
+                    />
+                    <button on:click={() => addComment(conversation.id)}>Add Comment</button>
+                </div>
 
-    {#if foundChat}
-        <div class="card">
-            <h4>Chat Details</h4>
-            <p><strong>ID:</strong> {foundChat.id}</p>
-            <p><strong>Name:</strong> {foundChat.name}</p>
-            <p><strong>Ship Name:</strong> {foundChat.shipName}</p>
-            <p><strong>Created At:</strong> {new Date(foundChat.createdAt.seconds * 1000).toLocaleString()}</p>
-            <p><strong>Participants:</strong> {foundChat.participants.join(', ')}</p>
-        </div>
-    {:else if searchChatId}
-        <p class="alert-message">No chat found with the ID "{searchChatId}".</p>
+                {#if conversation.owner === currentUserId}
+                    <div class="participants-section">
+                        <h4>Participants:</h4>
+                        <p>{conversation.participants.join(', ') || 'No participants yet'}</p>
+                        <input
+                            type="text"
+                            bind:value={newParticipant}
+                            placeholder="Add a participant"
+                        />
+                        <button on:click={() => addParticipant(conversation.id)}>Add Participant</button>
+                    </div>
+                {/if}
+            </div>
+        {/each}
+    {:else}
+        <p>No conversations found. Create a new one!</p>
     {/if}
 </div>
 
@@ -126,12 +148,30 @@
     }
 
     .container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 1rem;
+        text-align: center;
+        margin: 2rem auto;
     }
 
-    .card {
+    .create-chat-button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-size: 1.2rem;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .create-chat-button:hover {
+        background-color: #0056b3;
+    }
+
+    .conversations {
+        max-width: 800px;
+        margin: 2rem auto;
+    }
+
+    .conversation-card {
         background: #fff;
         border: 1px solid #ddd;
         border-radius: 8px;
@@ -140,13 +180,38 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    .card h3 {
+    .conversation-card h3 {
         margin-top: 0;
         color: #343a40;
     }
 
-    .action-button {
-        background-color: #007bff;
+    .comments-section, .participants-section {
+        margin-top: 1rem;
+    }
+
+    .comments-section ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .comments-section li {
+        background: #f8f9fa;
+        margin: 0.25rem 0;
+        padding: 0.5rem;
+        border-radius: 4px;
+    }
+
+    input {
+        width: calc(100% - 2rem);
+        margin: 0.5rem 0;
+        padding: 0.5rem;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    button {
+        background-color: #28a745;
         color: #fff;
         border: none;
         padding: 0.5rem 1rem;
@@ -156,31 +221,14 @@
         margin-top: 0.5rem;
     }
 
-    .action-button:hover {
-        background-color: #0056b3;
-    }
-
-    .search-container {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-    }
-
-    .search-input {
-        flex: 1;
-        padding: 0.5rem;
-        font-size: 1rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-
-    .alert-message {
-        color: #dc3545;
-        font-weight: bold;
-        margin-top: 1rem;
-        text-align: center;
+    button:hover {
+        background-color: #218838;
     }
 </style>
+
+
+
+
 
 
 
