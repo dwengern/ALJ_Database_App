@@ -8,6 +8,8 @@
     let { db, auth } = sharedState
     let isSignedIn: boolean
     let communities = writable<Community[]>([])
+    let activeCommunity = writable<Community | null>(null)
+    let currentView: 'form' | 'community' | 'default' = 'default'
 
     let continentOfOrigin: string
     let countryOfOrigin: string 
@@ -32,125 +34,133 @@
 
         if (continentOfOrigin && name) { 
             users.push(sharedState.user.uid)
-            let comm = {continentOfOrigin, countryOfOrigin, tribalNation, name, users, commonAncestors}
+            const comm: Community = {continentOfOrigin, countryOfOrigin, tribalNation, name, users, commonAncestors}
             communities.update(cur => [...cur, comm])
-            
-
-            const container = document.getElementById('comm-list') as HTMLDivElement | null
-
-            if (container) { 
-                const newBtn = document.createElement('button')
-                newBtn.innerText = `${name}`
-
-                newBtn.style.border = 'none'
-                newBtn.style.width = '100%'
-                newBtn.style.backgroundColor = 'white'
-                newBtn.style.height = '50px'
-
-                container.appendChild(newBtn)
-            }
 
             resetInput()
+            currentView = 'community'
             
         } else { 
             window.alert('You at least need to enter the community name and continent.')
         }
     }
 
-    //This part deals with the dynamic page 
-    let hidden = true; 
+    const addEntry = (content: string) => {
+        if (content.trim()) {
+            commonAncestors = [...commonAncestors, content]
+            resetContent();
+        } else {
+            window.alert('Ancestor name cannot be empty.');
+        }
+    };
 
-    const toggleVisibility = () => { 
-        hidden = !hidden
-    }    
+    const deleteEntry = (an: string) => { 
+        const index = commonAncestors.indexOf(an)
 
-    const addEntry = (content: string) => { 
-        let ancestorEntry = document.getElementById('ancestors') as HTMLDivElement | null 
-        let ancestorInput = document.getElementById('ancestorInput') as HTMLInputElement | null
-        if (ancestorEntry && ancestorInput) { 
-            const newDiv = document.createElement('div')
-            const del = document.createElement('button')
-            const newEntry = document.createElement('p')
-
-            newEntry.innerText = content
-            del.innerText = 'X'
-            newDiv.style.display = 'flex'
-
-
-            del.onclick = () => { 
-                const txt = newEntry.innerText
-                const index = commonAncestors.indexOf(txt)
-
-                if (index >  -1) { 
-                    commonAncestors.splice(index, 1)
-                }
-                
-                ancestorEntry.removeChild(newDiv)
-            }
-            
-            commonAncestors.push(content)
-
-            newDiv.appendChild(newEntry)
-            newDiv.appendChild(del)
-            ancestorEntry.appendChild(newDiv)
-
-            resetContent()
-        } else { 
-            window.prompt('Whoops! that container does not exist.')
+        if (index > -1) { 
+            commonAncestors.splice(index, 1)
+            commonAncestors = [...commonAncestors]
         }
     }
 
     const resetInput = () => {
         content = '';
-        countryOfOrigin = ''; 
-        continentOfOrigin = ''; 
-        tribalNation = '';    
-        name = '';      
-    };
+        countryOfOrigin = '';
+        continentOfOrigin = '';
+        tribalNation = '';
+        name = '';
+        commonAncestors = [];
+    }
 
     const resetContent = () => {
         content = '';
-    };
+    }
+
+    function viewCommunity(comm: Community) { 
+        activeCommunity.set(comm)
+        currentView = 'community'
+    }
+
+    const showForm = () => { 
+        if (currentView === 'form') { 
+            currentView = 'default'
+        } else { 
+            currentView = 'form'
+        }
+    }
 </script>
 
 <div class="grid">
     <div class="list">
-        <button class="add-comm" on:click={toggleVisibility}>Create New Community</button>
-        <div id="comm-list" class="comm-list"></div>
+        <button class="add-comm" on:click={showForm}>Create New Community</button>
+        <div id="comm-list" class="comm-list">
+            {#each $communities as comm}
+                <button on:click = {() => viewCommunity(comm)}>{comm.name}</button>
+            {/each}
+        </div>
     </div>
 
     <div class="content">
-        
-        <div class="new-comm-form" style:display={hidden ? 'none' : 'flex'}>
-            <label>
-                Name of the Community: 
-                <input type="text" bind:value={name}>
-            </label>
+        {#if currentView === 'form'}
+            <div class="new-comm-form">
+                <label>
+                    Name of the Community: 
+                    <input type="text" bind:value={name}>
+                </label>
 
-            <label>
-                Continent of Origin: 
-                <input type="text" bind:value={continentOfOrigin}>
-            </label>
+                <label>
+                    Continent of Origin: 
+                    <input type="text" bind:value={continentOfOrigin}>
+                </label>
 
-            <label>
-                Country of Origin: 
-                <input type="text" bind:value={countryOfOrigin}>
-            </label>
+                <label>
+                    Country of Origin: 
+                    <input type="text" bind:value={countryOfOrigin}>
+                </label>
 
-            <label>
-                Tribe: 
-                <input type="text" bind:value={tribalNation}>
-            </label>
+                <label>
+                    Tribe: 
+                    <input type="text" bind:value={tribalNation}>
+                </label>
 
-            <label>
-                Names of Common Ancestors:
-                <input type="text" id="ancestorInput" bind:value={content}> 
-                <button on:click={() => addEntry(content)}>Add New</button>
-            </label>
+                <label>
+                    Names of Common Ancestors:
+                    <input type="text" id="ancestorInput" bind:value={content}> 
+                    <button on:click={() => addEntry(content)}>Add New</button>
+                </label>
 
-            <div id="ancestors"></div>
+                <div id="ancestors">
+                    {#each commonAncestors as ancestor}
+                        <div>
+                            <p>{ancestor}</p>
+                            <button on:click={() => deleteEntry(ancestor)}>X</button>
+                        </div>
+                    {/each}
+                </div>
 
-            <button on:click={createCommunity}>submit</button>
+                <button on:click={createCommunity}>submit</button>
+            </div>
+        {/if}
+
+        {#if currentView === 'default'}
+            <div>
+                <h1>Default page</h1>
+            </div>
+        {/if}
+
+        <div id="comm-info">
+            {#if $activeCommunity && currentView === 'community'}
+                <h2>{$activeCommunity.name}</h2>
+                <p>Continent: {$activeCommunity.continentOfOrigin}</p>
+                <p>Country: {$activeCommunity.countryOfOrigin}</p>
+                <p>Tribe: {$activeCommunity.tribalNation}</p>
+                <h3>Common Ancestors:</h3>
+                <ul>
+                    {#each $activeCommunity.commonAncestors as ancestor}
+                        <li>{ancestor}</li>
+                    {/each}
+                </ul>
+            {/if}
         </div>
     </div>
 </div>
@@ -188,7 +198,7 @@
     }
 
     .new-comm-form { 
-        display: none; 
+        display: flex; 
         flex-direction: column; 
     }
 

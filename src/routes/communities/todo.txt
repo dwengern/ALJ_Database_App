@@ -1,0 +1,6 @@
+1 - In create community make sure that when the user clicks on the button, 
+    in the content page, information about the community shows up : DONE
+2 - create a chat group for the community 
+3 - be able to have a user join a community 
+4 - be able to have a user leave a community 
+5 - have a default page 
