@@ -1,47 +1,90 @@
 <script lang="ts">
-	import { sharedState, updateUser } from '$lib/sharedState.svelte';
-	import { NullUser } from '$lib/user-types';
+	import { sharedState } from '$lib/sharedState.svelte';
+	import { collection, getDocs, query, where, CollectionReference } from "firebase/firestore";
+	import type { User } from '$lib/user-types';
+
+	let searchName = ''; // Bind this to the input field for searching
+	let userResult: User | null = null; // Store the found user data
+	let errorMessage: string | null = null;
+
+	// Search for a user by name
+	async function searchUserByName(userName: string): Promise<void> {
+		try {
+			// Clear previous results
+			userResult = null;
+			errorMessage = null;
+
+			// Access the Firestore "users" collection
+			const usersCollectionRef = collection(sharedState.db!, 'users') as CollectionReference<User>;
+			const q = query(usersCollectionRef, where("name", "==", userName));
+			const querySnapshot = await getDocs(q);
+
+			// Check if a user is found
+			if (querySnapshot.empty) {
+				errorMessage = `No user found with the name "${userName}".`;
+				return;
+			}
+
+			// Assuming we only care about the first match
+			userResult = querySnapshot.docs[0].data();
+		} catch (error) {
+			console.error("Error searching for user: ", error);
+			errorMessage = "An error occurred while searching for the user.";
+		}
+	}
 </script>
 
 <style>
-  .center-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    margin: 0 auto;
-    padding: 20px;
-    max-width: 600px;
-    border: 1px solid #ccc; /* Optional: Add a border */
-    border-radius: 10px;    /* Optional: Rounded corners */
-    background-color: #f9f9f9; /* Optional: Light background */
-  }
-  img {
-    max-width: 100px; /* Limit profile picture size */
-    border-radius: 50%; /* Make it circular */
-  }
-  hr {
-    width: 80%;
-    margin: 20px 0;
-  }
+	/* Add some basic styling */
+	.form-container {
+		margin: 20px;
+		padding: 10px;
+		border: 1px solid #ddd;
+		border-radius: 5px;
+	}
+
+	.result-container {
+		margin-top: 20px;
+		padding: 10px;
+		border: 1px solid #ddd;
+		border-radius: 5px;
+		background-color: #f9f9f9;
+	}
+
+	.error-message {
+		color: red;
+		margin-top: 10px;
+	}
 </style>
 
-{#if sharedState.user.name.length > 0}
-<div class="center-container">
-  <h2>Profile Details</h2>
-  <hr>
-  <img src={sharedState.user.photoURL} alt="User profile" />
-  <p><strong>{sharedState.user.name}</strong></p>
- <!--<p><strong>Email:</strong> {sharedState.user.email}</p>   (May not want this to be shown publily, add option?)--> 
-  <p><strong>Bio:</strong> {sharedState.user.bio}</p>
-  <p><strong>Area of Expertise:</strong> {sharedState.user.interest}</p>
-  <p><strong>Institution/Affiliation:</strong> {sharedState.user.institution}</p>
+<div class="form-container">
+	<h2>Search for a User</h2>
+	<form on:submit|preventDefault={() => searchUserByName(searchName)}>
+		<label for="userName">Enter User Name:</label>
+		<input
+			type="text"
+			id="userName"
+			bind:value={searchName}
+			placeholder="Enter the name of the user"
+			required
+		/>
+		<button type="submit">Search</button>
+	</form>
+
+	{#if errorMessage}
+		<p class="error-message">{errorMessage}</p>
+	{/if}
 </div>
-{:else}
-<div class="center-container">
-  <p>No user</p>
-</div>
+
+{#if userResult}
+	<div class="result-container">
+		<h3>User Profile</h3>
+		<p><strong>Name:</strong> {userResult.name}</p>
+		<p><strong>Email:</strong> {userResult.email}</p>
+		<p><strong>Institution:</strong> {userResult.institution}</p>
+		<p><strong>Interest:</strong> {userResult.interest}</p>
+		<p><strong>Bio:</strong> {userResult.bio}</p>
+	</div>
 {/if}
 
 
