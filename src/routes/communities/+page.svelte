@@ -1,11 +1,12 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { writable } from 'svelte/store';
-    import { doc, addDoc, getDoc, updateDoc, arrayUnion, collection } from 'firebase/firestore';
+    import { doc, addDoc, getDoc, getDocs, updateDoc, arrayUnion, collection, onSnapshot } from 'firebase/firestore';
     import { sharedState } from '$lib/sharedState.svelte';
     import type { Community } from '$lib/community-type';
 
     let { db, auth } = sharedState
+
     let isSignedIn: boolean
     let communities = writable<Community[]>([])
     let activeCommunity = writable<Community | null>(null)
@@ -25,12 +26,23 @@
         return sharedState.user.uid !== ''
     }
 
-    function createCommunity() { 
+    onMount(async () => {
+        const commCollection = collection(sharedState.db!, 'communities')
+
+        const unsubscribe = onSnapshot(commCollections, (snapshot) => { 
+            const updated = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})) as Community[] 
+            communities.set(updated)       
+        })
+        
+        return () => unsubscribe()
+    })
+    
+    /*function createCommunity() { 
         /*if (isSignedIn) { 
             window.prompt('got it!')
         } else { 
             window.prompt('You need to be signed in to do this.')
-        }*/
+        }
 
         if (continentOfOrigin && name) { 
             users.push(sharedState.user.uid)
@@ -43,6 +55,52 @@
         } else { 
             window.alert('You at least need to enter the community name and continent.')
         }
+    }*/
+
+    async function createCommunity() { 
+        if (!contentOfOrigin || !name) { 
+            window.alert('You need to provide at least a community name and continent.')
+            return
+        }
+
+        try { 
+            const newCommunity = {name, continentOfOrigin, countryOfOrigin, tribalNation, users: [sharedState.user.uid], commonAncestors}
+            const docRef = await addDoc(collection(sharedState.db!, 'communities'), newCommunity)
+            const docSnap = await getDoc(docRef)
+
+            if (docSnap.exists()) { 
+                const created = {id: docSnap.id, ...docSnap.data()}
+                activeCommunity.set(created as Community)
+                currentView = 'community'
+            }
+
+            resetInput()
+        } catch (err) { 
+            console.error('Error creating community: ', err)
+            window.alert('Something went wrong. Please try again')
+        }
+
+        resetInput()
+    }
+
+    function viewCommunity(commId?: string ) { 
+        if (commId) { 
+            const commDoc = doc(sharedState.db!, 'communities', commId)
+
+            const unsubscribe = onSnapshot(commDoc, (docSnap) => { 
+                if (docSnap.exists()) { 
+                    activeCommunity.set({id: docSnap.id, ...docSnap.data()} as Community)
+                    currentView = 'community'
+                } else { 
+                    console.log('No such community')
+                }
+            })
+
+            return () => unsubscribe()
+        } else { 
+            window.alert('Error in viewing community')
+        }       
+        
     }
 
     const addEntry = (content: string) => {
@@ -52,7 +110,7 @@
         } else {
             window.alert('Ancestor name cannot be empty.');
         }
-    };
+    }
 
     const deleteEntry = (an: string) => { 
         const index = commonAncestors.indexOf(an)
@@ -76,11 +134,6 @@
         content = '';
     }
 
-    function viewCommunity(comm: Community) { 
-        activeCommunity.set(comm)
-        currentView = 'community'
-    }
-
     const showForm = () => { 
         if (currentView === 'form') { 
             currentView = 'default'
@@ -94,8 +147,8 @@
     <div class="list">
         <button class="add-comm" on:click={showForm}>Create New Community</button>
         <div id="comm-list" class="comm-list">
-            {#each $communities as comm}
-                <button on:click = {() => viewCommunity(comm)}>{comm.name}</button>
+            {#each $communities as comm (comm.id)}
+                <button on:click = {() => viewCommunity(comm.id)}>{comm.name}</button>
             {/each}
         </div>
     </div>
@@ -210,3 +263,5 @@
     
 
 </style>
+I want to replace the store and use the firebase to store and use data instead. How would I go about doing that?
+
