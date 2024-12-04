@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte'
     import { writable } from 'svelte/store'
-    import { loadApp } from '$lib/firebase-client'
-    import { doc, addDoc, getDoc, getDocs, updateDoc, arrayUnion, collection, onSnapshot } from 'firebase/firestore'
+    import { fetchCommunities, addCommunity, subscribeToCommunities, fetchCommunityById, deleteCommunityById } from '$lib/db-utils';
+    import { showAlert } from '$lib/browser-utils'
     import { sharedState } from '$lib/sharedState.svelte'
     import type { Community } from '$lib/community-type'
 
@@ -29,73 +29,69 @@
     }
 
     onMount(() => {
-        if (sharedState.db) {
-            const commCollection = collection(sharedState.db, 'communities')
+        let unsubscribe: (() => void) | undefined;
 
-            const unsubscribe = onSnapshot(commCollection, (snapshot) => { 
-                const updated = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})) as Community[] 
-                console.log('Communities fetched: ', updated)
-                communities.set(updated)  
+        try { 
+            const unsubscribe = subscribeToCommunities((updated) => { 
+                communities.set(updated)
                 loading.set(false)
-            })
-            
-            return () => unsubscribe()
-        } else { 
-            console.error('Firestore instance (db) is not initialized.');
-            loading.set(false)
+            })     
+        } catch (err) { 
+            console.error('Error when mounting: ', err)
         }
-        
+
+        return () => { 
+            if (unsubscribe) unsubscribe()  
+        }
     })
     
     async function createCommunity() { 
         if (!continentOfOrigin || !name) { 
-            window.alert('You need to provide at least a community name and continent.')
+            console.error('You need to provide at least a community name and continent.')
             return
         }
 
-        try { 
-            if (!sharedState.db) {
-                console.error('Firestore instance (db) is not initialized.');
-                return;
-            }
-
+        try {             
             const newCommunity = {name, continentOfOrigin, countryOfOrigin, tribalNation, users: [sharedState.user.uid], commonAncestors}
-            const docRef = await addDoc(collection(sharedState.db, 'communities'), newCommunity)
-            const docSnap = await getDoc(docRef)
-
-            if (docSnap.exists()) { 
-                const created = {id: docSnap.id, ...docSnap.data()}
-                activeCommunity.set(created as Community)
-                currentView = 'community'
-            }
+            await addCommunity(newCommunity)
 
             resetInput()
         } catch (err) { 
             console.error('Error creating community: ', err)
-            window.alert('Something went wrong. Please try again')
         }
-
-        resetInput()
     }
 
-    function viewCommunity(commId?: string ) { 
-        if (commId) { 
-            const commDoc = doc(sharedState.db!, 'communities', commId)
+    async function viewCommunity(commId?: string ) { 
+        try { 
+            if (!commId) { 
+                console.error('Not a valid doc id')
+                return 
+            }
 
-            const unsubscribe = onSnapshot(commDoc, (docSnap) => { 
-                if (docSnap.exists()) { 
-                    activeCommunity.set({id: docSnap.id, ...docSnap.data()} as Community)
-                    currentView = 'community'
-                } else { 
-                    console.log('No such community')
-                }
-            })
+            const community = await fetchCommunityById(commId)
+            if (community) { 
+                activeCommunity.set(community)
+                currentView = 'community'
+            }    
+            
+        } catch (err) { 
+            console.error('Error creating community: ', err)
+        }
+    }
 
-            return () => unsubscribe()
-        } else { 
-            window.alert('Error in viewing community')
-        }       
-        
+    async function deleteCommunity(commId?: string) { 
+        try { 
+            if (!commId) { 
+                console.error('Not a valid doc id')
+                return 
+            }
+            
+            await deleteCommunityById(commId)
+
+            currentView = 'default'
+        } catch (err) { 
+            console.error('Error deleting community: ', err)
+        }
     }
 
     const addEntry = (content: string) => {
@@ -137,6 +133,7 @@
         }
     }
 </script>
+
 
 <div class="grid">
     <div class="list">
@@ -214,6 +211,8 @@
                         <li>{ancestor}</li>
                     {/each}
                 </ul>
+
+                <button on:click={() => deleteCommunity($activeCommunity.id)}>Delete</button>
             {/if}
         </div>
     </div>
@@ -262,4 +261,3 @@
     }
 
 </style>
-

@@ -1,10 +1,10 @@
-import { collection, query, where, getDocs, getDoc, addDoc, onSnapshot, doc } from "firebase/firestore";
+import { collection, query, where, getDocs, getDoc, addDoc, onSnapshot, doc, deleteDoc } from "firebase/firestore";
 import { loadApp } from '$lib/firebase-client';
 import type { Community } from '$lib/community-type'
 
-const { db } = loadApp();
+const {db} = loadApp()
 
-const q = query(collection(db, "cities"), where("capital", "==", true));
+const q = query(collection(db!, "cities"), where("capital", "==", true));
 
 const querySnapshot = await getDocs(q);
 querySnapshot.forEach((doc) => {
@@ -14,14 +14,24 @@ querySnapshot.forEach((doc) => {
 
 //Communities
 export const fetchCommunities = async () => { 
-  const q = query(collection(db!, 'communities'))
-  const querySnapshot = await getDocs(q)
-
-  return querySnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}))
+  try { 
+    const q = query(collection(db!, 'communities'))
+    const querySnapshot = await getDocs(q)
+    return querySnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}))
+  } catch (err) { 
+    console.error('Error when fetching communities: ', err)
+    return
+  }
 }
 
 export const addCommunity = async (community: Community) => { 
-  return await addDoc(collection(db!, 'communities'), community)
+  try { 
+    return await addDoc(collection(db!, 'communities'), community)
+  } catch (err) { 
+    console.error('Error when adding community: ', err)
+    return
+  }
+  
 }
 
 export const subscribeToCommunities = (callback: (communities: Community[]) => void) => { 
@@ -34,12 +44,29 @@ export const subscribeToCommunities = (callback: (communities: Community[]) => v
 } 
 
 export const fetchCommunityById = async (id: string) => { 
-  const commDoc = doc(db!, 'communities', id)
-  const docSnap = await getDoc(commDoc)
+  
+  try { 
+    const commDoc = doc(db!, 'communities', id)
+    const docSnap = await getDoc(commDoc)
 
-  if (docSnap.exists()) { 
-    return {id: docSnap.id, ...docSnap.data()}
-  } else { 
-    throw new Error('Community not found')
+    if (docSnap.exists()) { 
+      return {id: docSnap.id, ...(docSnap.data() as Community)}
+    } else { 
+      throw new Error('Community not found')
+    }
+  } catch (err) { 
+    console.error(`Error when fetching community with ID ${id}: `, err)
+    return
+  } 
+}
+
+export const deleteCommunityById = async (id: string): Promise<void> => { 
+  try { 
+    const commDoc = doc(db!, 'communities', id)
+    await deleteDoc(commDoc)
+  } catch (err) { 
+    console.error(`Error when deleting community with ID ${id}: `, err)
+    return
   }
 }
+
