@@ -5,3 +5,4 @@
 4 - be able to have a user leave a community 
 5 - have a default page : DONE
 6 - update code to work with firebase database 
+7 - update db.utils 

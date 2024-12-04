@@ -1,15 +1,17 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import { writable } from 'svelte/store';
-    import { doc, addDoc, getDoc, getDocs, updateDoc, arrayUnion, collection, onSnapshot } from 'firebase/firestore';
-    import { sharedState } from '$lib/sharedState.svelte';
-    import type { Community } from '$lib/community-type';
+    import { onMount } from 'svelte'
+    import { writable } from 'svelte/store'
+    import { loadApp } from '$lib/firebase-client'
+    import { doc, addDoc, getDoc, getDocs, updateDoc, arrayUnion, collection, onSnapshot } from 'firebase/firestore'
+    import { sharedState } from '$lib/sharedState.svelte'
+    import type { Community } from '$lib/community-type'
 
     let { db, auth } = sharedState
 
     let isSignedIn: boolean
     let communities = writable<Community[]>([])
     let activeCommunity = writable<Community | null>(null)
+    let loading = writable(true)
     let currentView: 'form' | 'community' | 'default' = 'default'
 
     let continentOfOrigin: string
@@ -27,14 +29,22 @@
     }
 
     onMount(() => {
-        const commCollection = collection(sharedState.db!, 'communities')
+        if (sharedState.db) {
+            const commCollection = collection(sharedState.db, 'communities')
 
-        const unsubscribe = onSnapshot(commCollection, (snapshot) => { 
-            const updated = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})) as Community[] 
-            communities.set(updated)       
-        })
+            const unsubscribe = onSnapshot(commCollection, (snapshot) => { 
+                const updated = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})) as Community[] 
+                console.log('Communities fetched: ', updated)
+                communities.set(updated)  
+                loading.set(false)
+            })
+            
+            return () => unsubscribe()
+        } else { 
+            console.error('Firestore instance (db) is not initialized.');
+            loading.set(false)
+        }
         
-        return () => unsubscribe()
     })
     
     /*function createCommunity() { 
@@ -64,8 +74,13 @@
         }
 
         try { 
+            if (!sharedState.db) {
+                console.error('Firestore instance (db) is not initialized.');
+                return;
+            }
+
             const newCommunity = {name, continentOfOrigin, countryOfOrigin, tribalNation, users: [sharedState.user.uid], commonAncestors}
-            const docRef = await addDoc(collection(sharedState.db!, 'communities'), newCommunity)
+            const docRef = await addDoc(collection(sharedState.db, 'communities'), newCommunity)
             const docSnap = await getDoc(docRef)
 
             if (docSnap.exists()) { 
@@ -150,10 +165,16 @@
             {#each $communities as comm (comm.id)}
                 <button on:click = {() => viewCommunity(comm.id)}>{comm.name}</button>
             {/each}
+
+            {#if $loading} 
+                <p>Loading...</p>
+            {/if}
+
         </div>
     </div>
 
     <div class="content">
+        
         {#if currentView === 'form'}
             <div class="new-comm-form">
                 <label>
@@ -253,15 +274,11 @@
     .new-comm-form { 
         display: flex; 
         flex-direction: column; 
-    }
+    }    
 
     .comm-list {
         display: flex; 
-        --button-hover-bg: darkblue; 
     }
 
-    
-
 </style>
-I want to replace the store and use the firebase to store and use data instead. How would I go about doing that?
 
