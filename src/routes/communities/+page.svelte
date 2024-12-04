@@ -26,10 +26,10 @@
         return sharedState.user.uid !== ''
     }
 
-    onMount(async () => {
+    onMount(() => {
         const commCollection = collection(sharedState.db!, 'communities')
 
-        const unsubscribe = onSnapshot(commCollections, (snapshot) => { 
+        const unsubscribe = onSnapshot(commCollection, (snapshot) => { 
             const updated = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})) as Community[] 
             communities.set(updated)       
         })
@@ -58,7 +58,7 @@
     }*/
 
     async function createCommunity() { 
-        if (!contentOfOrigin || !name) { 
+        if (!continentOfOrigin || !name) { 
             window.alert('You need to provide at least a community name and continent.')
             return
         }
