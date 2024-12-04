@@ -47,26 +47,6 @@
         
     })
     
-    /*function createCommunity() { 
-        /*if (isSignedIn) { 
-            window.prompt('got it!')
-        } else { 
-            window.prompt('You need to be signed in to do this.')
-        }
-
-        if (continentOfOrigin && name) { 
-            users.push(sharedState.user.uid)
-            const comm: Community = {continentOfOrigin, countryOfOrigin, tribalNation, name, users, commonAncestors}
-            communities.update(cur => [...cur, comm])
-
-            resetInput()
-            currentView = 'community'
-            
-        } else { 
-            window.alert('You at least need to enter the community name and continent.')
-        }
-    }*/
-
     async function createCommunity() { 
         if (!continentOfOrigin || !name) { 
             window.alert('You need to provide at least a community name and continent.')
@@ -278,6 +258,7 @@
 
     .comm-list {
         display: flex; 
+        flex-direction: column;
     }
 
 </style>
