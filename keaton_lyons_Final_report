@@ -1,0 +1,60 @@
+Keaton Lyons
+SWEN 200 - Final Report
+
+Requirements:
+User profiles:
+	-Should be able to login with google
+	-Should be able to have a name, bio, institution, interest and other fields
+	-should remain logged in upon refresh
+	-A page to show a user profile
+	-A page to edit a users profile
+
+
+System Overview 
+Implementation Details
+Firebase Authentication
+Google login was implemented using Firebase Authentication. This provides seamless integration with Google accounts and manages session persistence across page refreshes.
+Firestore Database
+User data (e.g., name, bio, institution, and interests) is stored in Firestore under a "users" collection. Data is updated using Firebase's setDoc method, ensuring that old information is replaced with new submissions.
+Frontend Components
+Profile Page
+Displays user information retrieved from Firestore.
+Currently supports basic profile viewing but requires further functionality for comprehensive user searches.
+Edit Profile Page
+Contains individual forms for updating specific profile fields (e.g., bio or institution).
+Automatically updates Firestore with submitted changes.
+Search Page
+Allows users to search for profiles. While functional, it currently lacks the ability to search by user names stored only in Firebase Auth.
+
+
++-------------------+         +-----------------------+
+|  Firebase Auth    |         |   Firestore Database  |
+|-------------------|         |-----------------------|
+| - Google Sign-In  |  <--->  | - Users Collection    |
+| - Session Handling|         |   - name             |
+| - Persistent Login|         |   - bio              |
++-------------------+         |   - institution       |
+                              |   - interests         |
+                              +-----------------------+
+                                       ^
+                                       |
+                                       |
++-------------------+    +---------------------+    +-------------------+
+|   Profile Page    |    | Edit Profile Page   |    |   Search Page      |
+|-------------------|    |---------------------|    |-------------------|
+| - Display User    |    | - Forms for updates|    | - Search users    |
+|   Info from DB    |    | - Send updates to  |    | - Fetch user info |
+|                   |    |   Firestore        |    |   from Firestore  |
++-------------------+    +---------------------+    +-------------------+
+
+
+Issues, Bugs, and Improvements 
+Identified Issue: Search Functionality
+Problem:
+Currently, users cannot search profiles by name because the name field from Google Authentication is not stored in the Firestore database.
+Solution:
+Implement a system to store the name retrieved from Google Authentication in Firestore during the initial login.
+Modify the search functionality to query the name field in the database instead of relying solely on the Firebase Authentication name.
+Justification:
+Storing the name in Firestore ensures that it is searchable alongside other user data. This approach integrates seamlessly with the existing system and leverages Firestore's powerful querying capabilities.
+
