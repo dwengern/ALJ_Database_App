@@ -24,16 +24,16 @@ export const addCommunity = async (community: Community) => {
   return await addDoc(collection(db!, 'communities'), community)
 }
 
-export const subscribeToCommunities = (callback) => { 
+export const subscribeToCommunities = (callback: (communities: Community[]) => void) => { 
   const q = collection(db!, 'communities')
   
   return onSnapshot(q, (snapshot) => { 
-    const communities = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}))
+    const communities = snapshot.docs.map(doc => ({id: doc.id, ...(doc.data() as Community)}))
     callback(communities)
   })
-}
+} 
 
-export const fetchCommunityById = async (id) => { 
+export const fetchCommunityById = async (id: string) => { 
   const commDoc = doc(db!, 'communities', id)
   const docSnap = await getDoc(commDoc)
 
