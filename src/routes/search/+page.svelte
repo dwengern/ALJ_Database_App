@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
-	import { searchShipByName } from '$lib/search-feature';
-	import type { Voyage } from '$lib/voyage-type';
+	import { collection, query, where, getDocs } from 'firebase/firestore';
+	import { sharedState } from '$lib/sharedState.svelte';
+
+	let { db, auth } = sharedState;
 
 	let searchQuery = '';
-	let searchResults = writable<Voyage[] | null>(null);
+	let searchResults = writable<any[] | null>(null);
 	let loading = writable(false);
 	let errorMessage = writable('');
 
@@ -12,17 +14,13 @@
 		if (searchQuery.trim()) {
 			loading.set(true);
 			errorMessage.set('');
-			searchShipByName(searchQuery.trim())
+			searchChatsByShipName(searchQuery.trim())
 				.then((results) => {
-					const filteredResults = results?.filter((ship) =>
-						ship.SHIPNAME.toLowerCase().startsWith(searchQuery.trim().toLowerCase())
-					) || [];
-
-					if (filteredResults.length === 0) {
+					if (results.length === 0) {
 						searchResults.set(null);
-						errorMessage.set(`No ship found with the name "${searchQuery}".`);
+						errorMessage.set(`No conversations found for ship "${searchQuery}".`);
 					} else {
-						searchResults.set(filteredResults);
+						searchResults.set(results);
 						errorMessage.set('');
 					}
 				})
@@ -39,22 +37,36 @@
 			errorMessage.set('');
 		}
 	}
+
+	async function searchChatsByShipName(shipName: string) {
+		if (!db) return [];
+
+		const chatsRef = collection(db, 'chats');
+		const q = query(chatsRef, where('shipName', '==', shipName));
+		const querySnapshot = await getDocs(q);
+		const chats = querySnapshot.docs.map((doc) => ({
+			id: doc.id,
+			...doc.data(),
+		}));
+
+		return chats;
+	}
 </script>
 
 <style>
 	.search-container {
 		margin-bottom: 1.5rem;
-		padding-top: 2rem; 
+		padding-top: 2rem;
 		text-align: center;
 	}
 
 	.search-form {
-		display: inline-flex; 
+		display: inline-flex;
 		gap: 0.5rem;
 	}
 
 	.search-input {
-		width: 300px; 
+		width: 300px;
 		padding: 0.5rem;
 		font-size: 1rem;
 		border: 1px solid #ccc;
@@ -76,20 +88,21 @@
 
 	.results-container {
 		margin-top: 2rem;
-		padding: 1rem; 
+		padding: 1rem;
 		text-align: center;
 	}
 
 	.results-table {
 		width: 100%;
-		max-width: 800px; 
+		max-width: 800px;
 		margin: 0 auto;
 		border-collapse: collapse;
 		margin-top: 1rem;
-		margin-bottom: 2rem; 
+		margin-bottom: 2rem;
 	}
 
-	.results-table th, .results-table td {
+	.results-table th,
+	.results-table td {
 		padding: 0.75rem;
 		text-align: left;
 		border: 1px solid #ddd;
@@ -102,12 +115,12 @@
 	.alert-message {
 		color: #dc3545;
 		font-weight: bold;
-		margin-top: 1rem; 
+		margin-top: 1rem;
 	}
 
 	.results-count {
 		font-weight: bold;
-		margin-top: 1rem; 
+		margin-top: 1rem;
 	}
 </style>
 
@@ -136,19 +149,19 @@
 		<table class="results-table">
 			<thead>
 				<tr>
+					<th>Chat Name</th>
 					<th>Ship Name</th>
-					<th>Captain</th>
-					<th>Departure Date</th>
-					<th>Arrival Port</th>
+					<th>Description</th>
+					<th>Participants</th>
 				</tr>
 			</thead>
 			<tbody>
-				{#each $searchResults as ship}
+				{#each $searchResults as chat}
 					<tr>
-						<td>{ship.SHIPNAME}</td>
-						<td>{ship.CAPTAINA}</td>
-						<td>{ship.DATEDEP}</td>
-						<td>{ship.ARRPORT}</td>
+						<td>{chat.name}</td>
+						<td>{chat.shipName}</td>
+						<td>{chat.description}</td>
+						<td>{chat.participants?.join(', ') || 'None'}</td>
 					</tr>
 				{/each}
 			</tbody>
@@ -157,3 +170,4 @@
 		<p class="alert-message">No results found for "{searchQuery}"</p>
 	{/if}
 </div>
+

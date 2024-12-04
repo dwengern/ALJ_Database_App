@@ -1,31 +1,14 @@
 <script lang="ts">
-	import { callSignInWithPopup, callSignOut } from '$lib/sign-in-popup'
 	import { getAuth, onAuthStateChanged } from 'firebase/auth'
 	import { browser } from '$app/environment'
 	import { sharedState, updateUser } from '$lib/sharedState.svelte'
 	import { NullUser } from '$lib/user-types'
 	import { loadApp } from '$lib/firebase-client'
 	import { doc, getDoc } from 'firebase/firestore'
-	import Navbar from '$lib/Navbar.svelte';
-    import Footer from '$lib/Footer.svelte';
+	import Navbar from '$lib/Navbar.svelte'
+	import Footer from '$lib/Footer.svelte'
 
 	let { children } = $props()
-
-	function doLogin() {
-		if (!sharedState!.auth) {
-			console.log('No auth object')
-			return
-		}
-		callSignInWithPopup(sharedState!.auth)
-	}
-
-	function doLogout() {
-		if (!sharedState!.auth) {
-			console.log('No auth object')
-			return
-		}
-		callSignOut(sharedState.auth)
-	}
 
 	if (browser) {
 		console.log('Layout running in browser')
