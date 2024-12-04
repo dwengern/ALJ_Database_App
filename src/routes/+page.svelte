@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { collection, query, getDocs } from 'firebase/firestore';
 	import {sharedState} from '$lib/sharedState.svelte';
+	import { doc, setDoc } from "firebase/firestore";
 
 	let data: any[] = [];
 
@@ -22,6 +23,8 @@
 	function clearData() {
 		data = [];
 	}
+
+	
 </script>
 
 <h1>Welcome to SvelteKit</h1>

@@ -60,7 +60,7 @@
 					</li>
 					{:else}
 						<li>
-							<a href="/uid/profile">View Profile</a>
+							<a href="/uid/profile">Search for Profile</a>
 						</li>
 						<li>
 							<a href="/editmyprofile">Edit Profile</a>

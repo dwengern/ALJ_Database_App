@@ -7,6 +7,8 @@
 	let userResult: User | null = null; // Store the found user data
 	let errorMessage: string | null = null;
 
+
+  
 	// Search for a user by name
 	async function searchUserByName(userName: string): Promise<void> {
 		try {
@@ -58,7 +60,7 @@
 </style>
 
 <div class="form-container">
-	<h2>Search for a User</h2>
+	<h2>Search for a  User</h2>
 	<form on:submit|preventDefault={() => searchUserByName(searchName)}>
 		<label for="userName">Enter User Name:</label>
 		<input
