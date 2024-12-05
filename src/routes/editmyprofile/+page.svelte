@@ -167,7 +167,7 @@
   <p><strong>Institution/Affiliation:</strong> {sharedState.user.institution}</p>
 
   <hr>
-  <h3>Change Name</h3>
+  <h3>Change Name:</h3>
   <form on:submit={handleNameChange}>
     <label for="name">Name:</label>
     <input
@@ -181,7 +181,7 @@
   </form>
 
   <hr>
-  <h3>Create/Change Bio</h3>
+  <h3>Create/Change Bio:</h3>
   <form on:submit={handleBioChange}>
     <label for="bio">New bio:</label>
     <input
