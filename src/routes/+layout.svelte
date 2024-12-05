@@ -16,7 +16,7 @@
 			console.log('No auth object')
 			return
 		}
-		callSignInWithPopup(sharedState!.auth)
+	
 	}
 
 	function doLogout() {
@@ -36,6 +36,7 @@
 				sharedState.db = db
 				sharedState.auth = getAuth()
 				onAuthStateChanged(sharedState.auth, (user) => {
+					
 					console.log('User auth has changed...')
 					if (user) {
 						let g_user = {
@@ -70,6 +71,7 @@
 							.catch((error) => {
 								console.log('Error getting document:', error)
 							})
+							
 					} else {
 						updateUser(NullUser)
 					}

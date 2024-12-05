@@ -7,8 +7,33 @@
 		console.log("Shared state in editmyprofile:", sharedState);
 	}
 
-	// Function to handle bio change
+   // Function to handle  Name change
 	async function handleNameChange(event: Event) {
+		event.preventDefault();
+		const form = event.target as HTMLFormElement;
+		const name = (form.querySelector('#name') as HTMLInputElement).value;
+
+		// Update sharedState's name
+		if (name && sharedState.user.uid) {
+			sharedState.user.name = name;
+			// Save the interest to Firestore
+			if (!sharedState.db) {
+				console.error("Firestore database not initialized");
+				return;
+			}
+			try {
+				await setDoc(doc(sharedState.db, "users", sharedState.user.uid), {
+					name: name,
+				}, { merge: true });
+				console.log("name updated in Firestore successfully");
+			} catch (error) {
+				console.error("Error updating bio in Firestore:", error);
+			}
+		}
+	}
+
+	// Function to handle bio change
+	async function handleBioChange(event: Event) {
 		event.preventDefault();
 		const form = event.target as HTMLFormElement;
 		const bio = (form.querySelector('#bio') as HTMLInputElement).value;
@@ -142,8 +167,22 @@
   <p><strong>Institution/Affiliation:</strong> {sharedState.user.institution}</p>
 
   <hr>
-  <h3>Create/Change Bio</h3>
+  <h3>Change Name</h3>
   <form on:submit={handleNameChange}>
+    <label for="name">Name:</label>
+    <input
+      type="text"
+      id="name"
+      name="name"
+      required
+      value={sharedState.user.name || ''}
+    >
+    <button type="submit">Submit</button>
+  </form>
+
+  <hr>
+  <h3>Create/Change Bio</h3>
+  <form on:submit={handleBioChange}>
     <label for="bio">New bio:</label>
     <input
       type="text"
