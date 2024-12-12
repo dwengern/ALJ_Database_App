@@ -1,0 +1,46 @@
+Prepare a documentation report in Markdown and post it to the “docs” directory in a branch of the repository with your name and “final_report,” so my branch would be “spicklemire_final_report.” These may ultimately be merged into a single project document, but for the purposes of grading this assignment, they should be kept separate.
+
+Requirements Specification (10 pts): Prepare a requirements specification for the user stories you implemented. Represent the functional requirements (user-facing requirements, not unit tests) as Gherkin scenarios. Focus on those aspects of the project that you supported. 
+
+	User wants to create a new community 
+	Given user clicks on create community and is signed in
+	When they fill out the form and press submit 
+	Then A new community should be created and added to the database and a new button for database should be created
+
+	User wants to view community 
+	Given user clicks on the community name button 
+	Then community should be displayed 
+
+	User wants to delete a community 
+	Given user views a community 
+	When user presses the delete button
+	The community button should be removed, the community deleted from firebase, and user brought back to default page 
+
+System Overview (10 pts): This section should describe the implementation of the parts of the program that satisfy the requirements from section 1. Again, focus on those aspects of the system that you implemented. Please include at least one diagram to illustrate the problem and the solution.
+a system object model diagram describing how the various implemented functions or components relate to one another.
+a use case model describing the relationship between the implemented requirements and the actors using the implemented functions
+either a sequence diagram, a flowchart, or a state model for each action you implemented that describes the implementation of each of these actions.
+Describe the impact these solutions may have on global, economic, environmental, or societal contexts.
+
+Implementation 1
+
+
+Implementation 2 
+
+
+Implementation 3 
+
+
+Issues, Bugs, and Improvements (20 pts): Identify at least one or two “bugs” or “features” that you worked on in this project. If there isn’t already 
+a GitHub issue for this bug/feature, post a corresponding issue to the main project bug tracker (called “issues” on Github). Document how you fixed the
+ bug/feature (what changes did you make? Why did you choose to fix the bug this way?) 
+
+When integrating the firebase with the code that was already implemented I created functions to use in db-utils. However when I used these functions, 
+the code will break and on the server end, I would get an error message saying the window was not defined. This was because integrating firebase functions 
+introduced ssr and the code was confused on whether it was in the server side or client side. I traced it all the way back to firebase-client.ts. Apparently 
+the problem was with analytics. Because analytics was alway showed as supported, that meant it was always on the server side, even when it should be in the 
+client side. To fix this, I made sure that analytics was only gotten on the server side and made sure that it was supported or not. I chose to fix the bug 
+this way, because the only other option was to find every instance of where the browser was active and server was active even outside my page, which is virtually 
+impossible. 
+
+
