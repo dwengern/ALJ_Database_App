@@ -33,6 +33,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"alj-web": "file:",
 		"firebase": "^10.14.1"
 	}
 }
